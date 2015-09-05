@@ -88,7 +88,6 @@ router.post('/update', function(req, res) {
 });
 
 router.post('/upload', function(req, res) {
-	console.log(req.body);
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); //replace spaces with _
