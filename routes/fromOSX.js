@@ -10,6 +10,7 @@ var azure = require('azure-storage');
 var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
+var AWS = require('aws-sdk');
 
 var router = express.Router();
 
@@ -90,7 +91,7 @@ router.post('/upload', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
-	var contentString = new Buffer(req.body.contents, 'base64').toString('utf8');
+	var contentString = new Buffer(req.body.contents, 'base64');
 	console.log(contentString);
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
@@ -106,36 +107,65 @@ router.post('/upload', function(req, res) {
 			// blobService.createBlockBlobFromText(container_name, blob_name, contentString, {
 			// 	contentType: contentType
 			// }, function(err, result, resopnse) {
-			var tokens = blob_name.split('/');
-			var filename = tokens[tokens.length - 1];
-			console.log(filename);
-			fs.writeFile(filename, contentString, 'utf8', function(err) {
-				if (err) console.log(err)
-				blobService.createBlockBlobFromLocalFile(container_name, filename, filename, function(err, result, response) {
-					// succesfully stored in azure storage
-					networkDb.updateEntryWithRecentFile(req.body.username, {
-						filepath: blob_name,
-						container_name: container_name,
-						URL: STORAGE_URL + container_name + '/' + blob_name
-					}, function(err, result) {
-						fs.unlink(filename, function(err) {
-							if (err) {
-								res.status(500).send({
-									type: 'upload',
-									data: err,
-									result: error
-								});
-							}
-							res.send({
-								type: 'upload',
-								data: null,
-								result: 'success'
-							});
+			// var tokens = blob_name.split('/');
+			// var filename = tokens[tokens.length - 1];
+			// console.log(filename);
+			// fs.writeFile(filename, contentString, 'utf8', function(err) {
+			// 	if (err) console.log(err)
+			// 	blobService.createBlockBlobFromLocalFile(container_name, filename, filename, function(err, result, response) {
+			// 		// succesfully stored in azure storage
+			// 		networkDb.updateEntryWithRecentFile(req.body.username, {
+			// 			filepath: blob_name,
+			// 			container_name: container_name,
+			// 			URL: STORAGE_URL + container_name + '/' + blob_name
+			// 		}, function(err, result) {
+			// 			fs.unlink(filename, function(err) {
+			// 				if (err) {
+			// 					res.status(500).send({
+			// 						type: 'upload',
+			// 						data: err,
+			// 						result: error
+			// 					});
+			// 				}
+			// 				res.send({
+			// 					type: 'upload',
+			// 					data: null,
+			// 					result: 'success'
+			// 				});
+			// 			});
+			// 		});
+			// 	});
+			// });
+			AWS.config.update({
+				accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
+				secretAccessKey: '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'
+			});
+			var s3service = new AWS.S3();
+			var bucketKey = req.body.username + ':' + blob_name;
+			// username format is going to be username:filepath
+			s3service.putObject({
+				ACL: 'public-read-write',
+				Bucket: 'pickupfilestorage',
+				Key: bucketKey,
+				Body: contentString
+			}, function(err, result) {
+				if (err) {
+					res.status(500).send({
+						type: 'upload',
+						data: err,
+						result: 'amazon s3 error'
+					});
+				} else {
+					var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
+					blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
+						res.status(200).send({
+							type: 'upload',
+							data: err,
+							result: 'success'
 						});
 					});
-				});
+				}
 			});
-
 		});
 	});
 });
@@ -156,7 +186,7 @@ router.get('/seed/:username/:password', function(req, res) {
 });
 
 router.get('/clear/:username/', function(req, res) {
-	networkDb.clearRecents(req.params.username, function(err, resullt) {
+	networkDb.clearRecents(req.params.username, function(err, result) {
 		res.send(result);
 	});
 });
