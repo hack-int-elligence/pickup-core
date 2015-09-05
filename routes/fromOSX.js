@@ -91,7 +91,8 @@ router.post('/upload', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); //replace spaces with _
-	var contentString = new Buffer(req.body.contents, 'base64').toString('ascii');
+	var contentString = new Buffer(req.body.contents, 'base64').toString('utf-8');
+	console.log(contentString);
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
 		blobService.setContainerAcl(container_name, null, {
@@ -111,8 +112,6 @@ router.post('/upload', function(req, res) {
 							result: error
 						});
 					}
-					console.log('mongo response: (err, result):');
-					console.log(err, result);
 					res.send({
 						type: 'upload',
 						data: null,
