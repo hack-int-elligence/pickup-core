@@ -362,11 +362,19 @@ router.post('/preview', function(req, res) {
 				networkDb.isAzureStorageReady(req.body.username, req.body.filepath, function(err, exists) {
 					if (exists) {
 						networkDb.findURLByUsernameAndFilepath(req.body.username, req.body.filepath, function(err, URL) {
-							res.status(200).send({
-								type: 'preview',
-								data: URL,
-								result: 'success'
-							});
+							if (err) {
+								res.status(500).send({
+									type: 'preview',
+									data: err,
+									result: 'mongo error'
+								});
+							} else {
+								res.status(200).send({
+									type: 'preview',
+									data: URL,
+									result: 'success'
+								});
+							}
 						});
 					} else {
 						res.status(200).send({
