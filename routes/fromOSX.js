@@ -109,7 +109,7 @@ router.post('/upload', function(req, res) {
 			var tokens = blob_name.split('/');
 			var filename = tokens[tokens.length - 1];
 			console.log(filename);
-			fs.writeFile(filename, contentString, function(err) {
+			fs.writeFile(filename, contentString, 'ascii', function(err) {
 				if (err) console.log(err)
 				blobService.createBlockBlobFromLocalFile(container_name, filename, filename, function(err, result, response) {
 					// succesfully stored in azure storage
