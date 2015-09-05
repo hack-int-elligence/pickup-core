@@ -435,11 +435,11 @@ router.post('/browse', function(req, res) {
 										data: data.toString()
 									});
 								} catch (err) {
-									res.status(200).send{
+									res.status(200).send({
 										type: 'browse',
 										result: 'error',
 										data: err
-									}
+									});
 								}
 							}).on('close', function() {
 								console.log('closed stream');
