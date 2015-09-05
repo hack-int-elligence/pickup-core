@@ -6,16 +6,17 @@ var debug = require('debug')('osx');
 var networkDb = require('../db/networkDb');
 process.env.AZURE_STORAGE_ACCESS_KEY = process.env.CUSTOMCONNSTR_AZURE_STORAGE_ACCESS_KEY;
 process.env.AZURE_STORAGE_ACCOUNT = process.env.CUSTOMCONNSTR_AZURE_STORAGE_ACCOUNT;
-
+process.env.AWS_ACCESS_KEY_ID = process.env.CUSTOMCONNSTR_AWS_ACCESS_KEY_ID;
+process.env.AWS_SECRET_ACCESS_KEY = process.env.CUSTOMCONNSTR_AWS_SECRET_ACCESS_KEY;
 var azure = require('azure-storage');
 var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
 var AWS = require('aws-sdk');
-AWS.config.update({
-	accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
-	secretAccessKey: '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'
-});
+// AWS.config.update({
+// 	accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
+// 	secretAccessKey: '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'
+// });
 AWS.config.update({
 	region: 'us-east-1'
 });
@@ -145,10 +146,10 @@ router.post('/upload', function(req, res) {
 			// 	});
 			// });
 			var s3service = new AWS.S3();
-			AWS.config.update({
-				accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
-				secretAccessKey: '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'
-			});
+			// AWS.config.update({
+			// 	accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
+			// 	secretAccessKey: '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'
+			// });
 			AWS.config.update({
 				region: 'us-east-1'
 			});
