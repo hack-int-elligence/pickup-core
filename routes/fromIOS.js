@@ -245,19 +245,14 @@ router.post('/pickup', function(req, res) {
 						} else {
 							stream.on('data', function(data) {
 								// console.log(data.toString().trim().split(/\n/));
-								// res.status(200).send({
-								// 	type: 'pickup',
-								// 	result: 'success',
-								// 	data: null
-								// });
-								return // avoid resending headers when stream closes
-							}).on('close', function() {
-								console.log('closed stream');
 								res.status(200).send({
 									type: 'pickup',
 									result: 'success',
 									data: null
 								});
+								return // avoid resending headers when stream closes
+							}).on('close', function() {
+								console.log('closed stream');
 								return connection.end();
 							})
 						}
