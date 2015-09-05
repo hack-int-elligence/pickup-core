@@ -138,6 +138,18 @@ router.post('/auth', function(req, res) {
 });
 
 router.post('/search', function(req, res) {
+	request.post({
+		url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+		formData: {
+			mac_address: entry['mac-address']
+		}
+	}, function(err, response, body) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log(body);
+		}
+	});
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
@@ -210,6 +222,18 @@ router.post('/search', function(req, res) {
 
 router.post('/pickup', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
+	request.post({
+		url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+		formData: {
+			mac_address: entry['mac-address']
+		}
+	}, function(err, response, body) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log(body);
+		}
+	});
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
 			console.log(err);
@@ -286,7 +310,7 @@ router.post('/pickup', function(req, res) {
 	});
 });
 
-router.post('/recent', function(req, res) {
+router.post('/recent', function(req, nores) {
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
@@ -400,6 +424,18 @@ router.post('/updateAccountPassword', function(req, res) {
 
 router.post('/browse', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
+	request.post({
+		url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+		formData: {
+			mac_address: entry['mac-address']
+		}
+	}, function(err, response, body) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log(body);
+		}
+	});
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
 			res.status(500).send({
@@ -429,11 +465,10 @@ router.post('/browse', function(req, res) {
 						} else {
 							stream.on('data', function(data) {
 								try {
-									console.log(data.toString().trim().split(/\n/));
 									res.status(200).send({
 										type: 'browse',
 										result: 'success',
-										data: data.toString()
+										data: data.toString().trim().split(/\n/)
 									});
 								} catch (err) {
 									res.status(200).send({
