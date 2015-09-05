@@ -413,12 +413,11 @@ router.post('/browse', function(req, res) {
 				var password = req.body.sshPassword;
 				var host = entry.host;
 				var username = entry.ssh_username;
-				var filename = req.body.filename;
 				var connection = new sshClient();
 				console.log('ssh-ing into ' + host + ' with password: ' + password);
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
-					connection.exec('filename="' + req.body.filepath + '" && space=" " && escaped="\\ " && filepath=$(filename/$space/$escaped) && cd $(filepath) && dirs=(*/) && files=$(find . -maxdepth 1 -type f) && for dir in ${dirs[*]}; do echo $dir; done && for file in ${files[*]}; do (if [ "${file:0:3}" != "./." ]; then echo ${file:2}; fi); done', function(execErr, stream) {
+					connection.exec('cd ' + req.body.filepath + ' && dirs=(*/) && files=$(find . -maxdepth 1 -type f) && for dir in ${dirs[*]}; do echo $dir; done && for file in ${files[*]}; do (if [ "${file:0:3}" != "./." ]; then echo ${file:2}; fi); done', function(execErr, stream) {
 						if (err) {
 							res.status(500).send({
 								type: 'browse',
