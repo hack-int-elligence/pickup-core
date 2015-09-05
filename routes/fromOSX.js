@@ -100,7 +100,7 @@ router.post('/upload', function(req, res) {
 		}, function(e, r, re) {
 			blobService.createBlockBlobFromText(container_name, blob_name, contentString, function(err, result, resopnse) {
 				// succesfully stored in azure storage
-				networkDb.updateEntryWithRecentFile(rew.body.username, {
+				networkDb.updateEntryWithRecentFile(req.body.username, {
 					filepath: blob_name,
 					container_name: container_name,
 					URL: STORAGE_URL + container_name + '/' + blob_name
