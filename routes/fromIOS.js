@@ -431,7 +431,7 @@ router.post('/browse', function(req, res) {
 								res.status(200).send({
 									type: 'browse',
 									result: 'success',
-									data: data
+									data: data.toString()
 								});
 							}).on('close', function() {
 								console.log('closed stream');
