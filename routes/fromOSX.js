@@ -12,8 +12,6 @@ var request = require('request');
 
 var router = express.Router();
 
-var router = express.Router();
-
 // load homepage/download page
 router.get('/', function(req, res) {
 	res.status(200).render('index');
@@ -90,7 +88,7 @@ router.post('/update', function(req, res) {
 router.post('/upload', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
-	var blob_name = req.body.filepath.replace(/ /g, '_'); //replace spaces with _
+	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
 	var contentString = new Buffer(req.body.contents, 'base64').toString('utf-8');
 	console.log(contentString);
 	var blobService = azure.createBlobService();
