@@ -96,7 +96,14 @@ router.post('/upload', function(req, res) {
 		blobService.setContainerAcl(container_name, null, {
 			publicAccessLevel: 'container'
 		}, function(e, r, re) {
-			blobService.createBlockBlobFromText(container_name, blob_name, contentString, function(err, result, resopnse) {
+			var tokens = blob_name.split('.');
+			var contentType = 'application/octet-stream';
+			if (tokens[tokens - 1] == 'pdf') {
+				contentType = 'application/pdf';
+			}
+			blobService.createBlockBlobFromText(container_name, blob_name, contentString, {
+				contentType: contentType
+			}, function(err, result, resopnse) {
 				// succesfully stored in azure storage
 				networkDb.updateEntryWithRecentFile(req.body.username, {
 					filepath: blob_name,
