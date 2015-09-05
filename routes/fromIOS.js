@@ -283,43 +283,6 @@ router.post('/pickup', function(req, res) {
 	});
 });
 
-router.post('/upload', function(req, res) {
-	req.body.username = req.body.username.toLowerCase();
-	var container_name = req.body.username;
-	var blob_name = req.body.filepath.replace(/ /g, '_'); //replace spaces with _
-	var contentString = req.body.contents;
-	var blobService = azure.createBlobService();
-	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
-		blobService.setContainerAcl(container_name, null, {
-			publicAccessLevel: 'container'
-		}, function(e, r, re) {
-			blobService.createBlockBlobFromText(container_name, blob_name, contentString, function(err, result, resopnse) {
-				// succesfully stored in azure storage
-				networkDb.updateEntryWithRecentFile(rew.body.username, {
-					filepath: blob_name,
-					container_name: container_name,
-					URL: STORAGE_URL + container_name + '/' + blob_name
-				}, function(err, result) {
-					if (err) {
-						res.status(500).send({
-							type: 'upload',
-							data: err,
-							result: error
-						});
-					}
-					console.log('mongo response: (err, result):');
-					console.log(err, result);
-					res.send({
-						type: 'upload',
-						data: null,
-						result: 'success'
-					});
-				});
-			});
-		});
-	});
-});
-
 router.post('/recent', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
