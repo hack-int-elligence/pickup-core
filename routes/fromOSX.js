@@ -13,10 +13,6 @@ var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
 var AWS = require('aws-sdk');
-// AWS.config.update({
-// 	accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
-// 	secretAccessKey: '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'
-// });
 AWS.config.update({
 	region: 'us-east-1'
 });
@@ -107,55 +103,13 @@ router.post('/upload', function(req, res) {
 		blobService.setContainerAcl(container_name, null, {
 			publicAccessLevel: 'container'
 		}, function(e, r, re) {
-			// var tokens = blob_name.split('.');
-			// var contentType = 'application/octet-stream';
-			// console.log(tokens[tokens.length - 1]);
-			// if (tokens[tokens.length - 1] == 'pdf') {
-			// 	contentType = 'application/pdf';
-			// }
-			// blobService.createBlockBlobFromText(container_name, blob_name, contentString, {
-			// 	contentType: contentType
-			// }, function(err, result, resopnse) {
-			// var tokens = blob_name.split('/');
-			// var filename = tokens[tokens.length - 1];
-			// console.log(filename);
-			// fs.writeFile(filename, contentString, 'utf8', function(err) {
-			// 	if (err) console.log(err)
-			// 	blobService.createBlockBlobFromLocalFile(container_name, filename, filename, function(err, result, response) {
-			// 		// succesfully stored in azure storage
-			// 		networkDb.updateEntryWithRecentFile(req.body.username, {
-			// 			filepath: blob_name,
-			// 			container_name: container_name,
-			// 			URL: STORAGE_URL + container_name + '/' + blob_name
-			// 		}, function(err, result) {
-			// 			fs.unlink(filename, function(err) {
-			// 				if (err) {
-			// 					res.status(500).send({
-			// 						type: 'upload',
-			// 						data: err,
-			// 						result: error
-			// 					});
-			// 				}
-			// 				res.send({
-			// 					type: 'upload',
-			// 					data: null,
-			// 					result: 'success'
-			// 				});
-			// 			});
-			// 		});
-			// 	});
-			// });
 			var s3service = new AWS.S3();
-			// AWS.config.update({
-			// 	accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
-			// 	secretAccessKey: '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'
-			// });
 			AWS.config.update({
 				region: 'us-east-1'
 			});
 			console.log(AWS.config);
 			var bucketKey = req.body.username + ':' + blob_name;
-			// username format is going to be username:filepath
+			// username format is username:filepath
 			console.log(bucketKey);
 			s3service.putObject({
 				Bucket: 'pickupfilestorage',
@@ -174,10 +128,16 @@ router.post('/upload', function(req, res) {
 					console.log(urlString);
 					blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
 						console.log(err, result, response);
-						res.status(200).send({
-							type: 'upload',
-							data: err,
-							result: 'success'
+						networkDb.updateEntryWithRecentFile(req.body.username, {
+							filepath: blob_name,
+							container_name: container_name,
+							URL: urlString
+						}, function(err, result) {
+							res.status(200).send({
+								type: 'upload',
+								data: err,
+								result: 'success'
+							});
 						});
 					});
 				}
