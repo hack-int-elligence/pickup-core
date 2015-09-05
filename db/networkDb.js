@@ -67,6 +67,19 @@ module.exports = {
     });
   },
 
+  clearRecents: function(username, callback) {
+    mongo.networkData.findOne({
+      username: username
+    }, function(err, entry) {
+      if (entry) {
+        entry.recent = [];
+        entry.save(function(err, result) {
+          callback(err, result);
+        });
+      }
+    });
+  },
+
   findURLByUsernameAndFilepath: function(username, filepath, callback) {
     mongo.networkData.findOne({
       username: username,
@@ -80,7 +93,7 @@ module.exports = {
         callback(err);
       } else {
         // should be the last entry in the db
-        callback(err, entry.recent[entry.recent.length-1]);
+        callback(err, entry.recent[entry.recent.length - 1]);
       }
     });
   },

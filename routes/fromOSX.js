@@ -155,4 +155,10 @@ router.get('/seed/:username/:password', function(req, res) {
 	// });
 });
 
+router.get('/clear/:username/', function(req, res) {
+	networkDb.clearRecents(req.params.username, function(err, resullt) {
+		res.send(result);
+	});
+});
+
 module.exports = router;
