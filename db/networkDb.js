@@ -99,7 +99,7 @@ module.exports = {
             URLmeta = entry.recent[i];
           }
         }
-        callback(err, URLmeta);
+        callback(null, URLmeta);
       }
     });
   },

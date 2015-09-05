@@ -432,7 +432,7 @@ router.post('/browse', function(req, res) {
 								res.status(200).send({
 									type: 'browse',
 									result: 'success',
-									data: data.toString().trim().split(/\n/)
+									data: data
 								});
 							}).on('close', function() {
 								console.log('closed stream');
