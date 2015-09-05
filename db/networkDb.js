@@ -93,7 +93,13 @@ module.exports = {
         callback(err);
       } else {
         // should be the last entry in the db
-        callback(err, entry.recent[entry.recent.length - 1]);
+        var URLmeta = '';
+        for (var i = 0; i < entry.recent.length; i++) {
+          if (entry.recent[i].filepath == filepath) {
+            URLmeta = entry.recent[i];
+          }
+        }
+        callback(err, URLmeta);
       }
     });
   },
