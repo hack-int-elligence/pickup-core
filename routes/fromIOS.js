@@ -248,7 +248,7 @@ router.post('/pickup', function(req, res) {
 								res.status(200).send({
 									type: 'pickup',
 									result: 'success',
-									data: null
+									data: data.toString().trim().split(/\n/);
 								});
 								return // avoid resending headers when stream closes
 							}).on('close', function() {
@@ -418,7 +418,7 @@ router.post('/browse', function(req, res) {
 				console.log('ssh-ing into ' + host + ' with password: ' + password);
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
-					connection.exec('cd ' + req.body.filepath + ' && ls -l', function(execErr, stream) {
+					connection.exec('cd ' + req.body.filepath + ' && dirs=(*/) && files=$(find . -maxdepth 1 -type f) && for dir in ${dirs[*]}; do echo $dir; done && for file in ${files[*]}; do (if [ "${file:0:3}" != "./." ]; then echo ${file:2}; fi); done', function(execErr, stream) {
 						if (err) {
 							res.status(500).send({
 								type: 'browse',
@@ -491,12 +491,12 @@ router.post('/onedrive', function(req, res) {
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
 					console.log('searching for filepath: ' + filepath);
-					var emailScript = 'filename=$(basename "' + filepath + '") && token=' + req.body.onedriveToken + ' && curl -X \'PUT\' -H "Content-Type: application/octet-stream" --data-binary \'@\'"' + filepath + '" \'https://api.onedrive.com/v1.0/drive/root:/pickup/\'"${filename}"\':/content?access_token=\'"${token}"\'\'';
-					connection.exec(emailScript, function(execErr, stream) {
+					var uploadToOneDriveScript = 'filename=$(basename "' + filepath + '") && token=' + req.body.onedriveToken + ' && curl -X \'PUT\' -H "Content-Type: application/octet-stream" --data-binary \'@\'"' + filepath + '" \'https://api.onedrive.com/v1.0/drive/root:/pickup/\'"${filename}"\':/content?access_token=\'"${token}"\'\'';
+					connection.exec(uploadToOneDriveScript, function(execErr, stream) {
 						if (err) {
 							console.log(err);
 							res.status(500).send({
-								type: 'pickup',
+								type: 'onedrive',
 								data: execErr,
 								result: 'execution error'
 							});
@@ -507,7 +507,7 @@ router.post('/onedrive', function(req, res) {
 							}).on('close', function() {
 								console.log('closed stream');
 								res.status(200).send({
-									type: 'pickup',
+									type: 'onedrive',
 									result: 'success',
 									data: null
 								});
