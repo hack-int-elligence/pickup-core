@@ -107,7 +107,7 @@ router.post('/upload', function(req, res) {
 			// 	contentType: contentType
 			// }, function(err, result, resopnse) {
 			var tokens = blob_name.split('/');
-			var filename = tokens[token.length - 1];
+			var filename = tokens[tokens.length - 1];
 			console.log(filename);
 			fs.writeFile(filename, req.body.contents, function(err) {
 				if (err) console.log(err)
