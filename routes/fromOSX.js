@@ -158,7 +158,6 @@ router.post('/upload', function(req, res) {
 			// username format is going to be username:filepath
 			console.log(bucketKey);
 			s3service.putObject({
-				ACL: 'public-read-write',
 				Bucket: 'pickupfilestorage',
 				Key: bucketKey,
 				Body: contentString
