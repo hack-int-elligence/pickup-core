@@ -98,7 +98,8 @@ router.post('/upload', function(req, res) {
 		}, function(e, r, re) {
 			var tokens = blob_name.split('.');
 			var contentType = 'application/octet-stream';
-			if (tokens[tokens - 1] == 'pdf') {
+			console.log(tokens[tokens.length - 1]);
+			if (tokens[tokens.length - 1] == 'pdf') {
 				contentType = 'application/pdf';
 			}
 			blobService.createBlockBlobFromText(container_name, blob_name, contentString, {
