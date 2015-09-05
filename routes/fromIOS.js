@@ -45,18 +45,18 @@ router.post('/login', function(req, res) {
 										result: 'mongo error'
 									});
 								} else {
-									// request.post({
-									// 	url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
-									// 	formData: {
-									// 		mac_address: entry['mac-address']
-									// 	}
-									// }, function(err, response, body) {
-									// 	if (err) {
-									// 		console.log(err);
-									// 	} else {
-									// 		console.log(body);
-									// 	}
-									// });
+									request.post({
+										url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+										formData: {
+											mac_address: entry['mac-address']
+										}
+									}, function(err, response, body) {
+										if (err) {
+											console.log(err);
+										} else {
+											console.log(body);
+										}
+									});
 									res.status(200).send({
 										type: 'login',
 										data: authToken,
