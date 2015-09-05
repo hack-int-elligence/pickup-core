@@ -402,6 +402,77 @@ router.post('/updateAccountPassword', function(req, res) {
 	});
 });
 
+router.post('/browse', function(req, res) {
+	req.body.username = req.body.username.toLowerCase();
+	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
+		if (err) {
+			res.status(500).send({
+				type: 'browse',
+				data: err,
+				result: 'mongo error'
+			});
+		} else {
+			// check auth token
+			if (req.body.authToken == entry.authToken) {
+				// all okay
+				var password = req.body.sshPassword;
+				var host = entry.host;
+				var username = entry.ssh_username;
+				var filename = req.body.filename;
+				var connection = new sshClient();
+				console.log('ssh-ing into ' + host + ' with password: ' + password);
+				connection.on('ready', function() {
+					debug('Succesfully connected via SSH to host!');
+					connection.exec('cd ' + req.body.filepath + ' && ls -l', function(execErr, stream) {
+						if (err) {
+							res.status(500).send({
+								type: 'browse',
+								data: execErr,
+								result: 'execution error'
+							});
+							return connection.end();
+						} else {
+							stream.on('data', function(data) {
+								console.log(data.toString().trim().split(/\n/));
+								res.status(200).send({
+									type: 'browse',
+									result: 'success',
+									data: data.toString().trim().split(/\n/)
+								});
+							}).on('close', function() {
+								console.log('closed stream');
+								return connection.end();
+							})
+						}
+					});
+				}).on('error', function(err) {
+					res.status(500).send({
+						type: 'browse',
+						data: err,
+						result: 'ssh error'
+					});
+				}).on('keyboard-interactive', function(name, instructions, instructionsLang, prompts, finish) {
+					console.log('Serving SSH password in a handshake interchange...');
+					finish([password]);
+				}).connect({
+					host: host,
+					port: 22,
+					username: username,
+					readyTimeout: 99999,
+					tryKeyboard: true
+				});
+			} else {
+				// no auth token
+				res.status(401).send({
+					type: 'browse',
+					result: 'auth error',
+					data: null
+				});
+			}
+		}
+	});
+});
+
 router.post('/onedrive', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {

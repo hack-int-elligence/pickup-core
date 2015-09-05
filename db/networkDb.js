@@ -105,11 +105,19 @@ module.exports = {
       if (err) {
         callback(err);
       } else {
-        entry.recent.push(fileData);
-        entry.save(function(err, result) {
-          debug('added new filepath to recent list');
-          callback(err, result);
-        });
+        var exists = false;
+        for (var i = 0; i < entry.recent.length; i++) {
+          if (entry.recent[i].username == fileData.username && entry.recent[i].filepath == fileData.filepath) {
+            exists = true;
+          }
+        }
+        if (!exists) {
+          entry.recent.push(fileData);
+          entry.save(function(err, result) {
+            debug('added new filepath to recent list');
+            callback(err, result);
+          });
+        }
       }
     });
   },
