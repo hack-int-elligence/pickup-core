@@ -248,7 +248,7 @@ router.post('/pickup', function(req, res) {
 								res.status(200).send({
 									type: 'pickup',
 									result: 'success',
-									data: data.toString().trim().split(/\n/);
+									data: data.toString().trim().split(/\n/)
 								});
 								return // avoid resending headers when stream closes
 							}).on('close', function() {
