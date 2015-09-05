@@ -251,6 +251,11 @@ router.post('/pickup', function(req, res) {
 								});
 							}).on('close', function() {
 								console.log('closed stream');
+								res.status(200).send({
+									type: 'pickup',
+									result: 'success',
+									data: null
+								});
 								return connection.end();
 							})
 						}
