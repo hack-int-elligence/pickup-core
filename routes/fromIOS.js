@@ -39,7 +39,7 @@ router.post('/login', function(req, res) {
 						if (req.body.password == entry.password) {
 							networkDb.updateEntryWithAuthToken(req.body.username, authToken, function(authErr, updated) {
 								if (authErr) {
-									rres.status(500).send({
+									res.status(500).send({
 										type: 'login',
 										data: err,
 										result: 'mongo error'
