@@ -89,7 +89,7 @@ router.post('/upload', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
-	var contentString = new Buffer(req.body.contents, 'base64').toString('ascii');
+	var contentString = new Buffer(req.body.contents, 'base64');
 	console.log(contentString);
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
