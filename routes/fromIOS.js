@@ -250,7 +250,7 @@ router.post('/pickup', function(req, res) {
 								// 	result: 'success',
 								// 	data: null
 								// });
-								// return // avoid resending headers when stream closes
+								return // avoid resending headers when stream closes
 							}).on('close', function() {
 								console.log('closed stream');
 								res.status(200).send({
