@@ -11,6 +11,13 @@ var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
 var AWS = require('aws-sdk');
+AWS.config.update({
+	accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
+	secretAccessKey: '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'
+});
+AWS.config.update({
+	region: 'us-east-1'
+});
 
 var router = express.Router();
 
@@ -136,13 +143,10 @@ router.post('/upload', function(req, res) {
 			// 		});
 			// 	});
 			// });
-			AWS.config.update({
-				accessKeyId: 'AKIAJIYEXN2MEI3IGHVQ',
-				secretAccessKey: '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'
-			});
 			var s3service = new AWS.S3();
 			var bucketKey = req.body.username + ':' + blob_name;
 			// username format is going to be username:filepath
+			console.log(bucketKey);
 			s3service.putObject({
 				ACL: 'public-read-write',
 				Bucket: 'pickupfilestorage',
@@ -150,6 +154,7 @@ router.post('/upload', function(req, res) {
 				Body: contentString
 			}, function(err, result) {
 				if (err) {
+					console.log(err);
 					res.status(500).send({
 						type: 'upload',
 						data: err,
@@ -157,7 +162,9 @@ router.post('/upload', function(req, res) {
 					});
 				} else {
 					var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
+					console.log(urlString);
 					blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
+						console.log(err, result, response);
 						res.status(200).send({
 							type: 'upload',
 							data: err,
