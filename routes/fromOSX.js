@@ -9,6 +9,7 @@ process.env.AZURE_STORAGE_ACCOUNT = process.env.CUSTOMCONNSTR_AZURE_STORAGE_ACCO
 var azure = require('azure-storage');
 var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
+var fs = require('fs');
 
 var router = express.Router();
 
@@ -96,35 +97,45 @@ router.post('/upload', function(req, res) {
 		blobService.setContainerAcl(container_name, null, {
 			publicAccessLevel: 'container'
 		}, function(e, r, re) {
-			var tokens = blob_name.split('.');
-			var contentType = 'application/octet-stream';
-			console.log(tokens[tokens.length - 1]);
-			if (tokens[tokens.length - 1] == 'pdf') {
-				contentType = 'application/pdf';
-			}
-			blobService.createBlockBlobFromText(container_name, blob_name, contentString, {
-				contentType: contentType
-			}, function(err, result, resopnse) {
-				// succesfully stored in azure storage
-				networkDb.updateEntryWithRecentFile(req.body.username, {
-					filepath: blob_name,
-					container_name: container_name,
-					URL: STORAGE_URL + container_name + '/' + blob_name
-				}, function(err, result) {
-					if (err) {
-						res.status(500).send({
-							type: 'upload',
-							data: err,
-							result: error
+			// var tokens = blob_name.split('.');
+			// var contentType = 'application/octet-stream';
+			// console.log(tokens[tokens.length - 1]);
+			// if (tokens[tokens.length - 1] == 'pdf') {
+			// 	contentType = 'application/pdf';
+			// }
+			// blobService.createBlockBlobFromText(container_name, blob_name, contentString, {
+			// 	contentType: contentType
+			// }, function(err, result, resopnse) {
+			var tokens = blob_name.split('/');
+			var filename = tokens[token.length - 1];
+			console.log(filename);
+			fs.writeFile(filename, req.body.contents, function(err) {
+				if (err) console.log(err)
+				blobService.createBlockBlobFromLocalFile(container_name, filename, filename, function(err, result, response) {
+					// succesfully stored in azure storage
+					networkDb.updateEntryWithRecentFile(req.body.username, {
+						filepath: blob_name,
+						container_name: container_name,
+						URL: STORAGE_URL + container_name + '/' + blob_name
+					}, function(err, result) {
+						fs.unlink(filename, function(err) {
+							if (err) {
+								res.status(500).send({
+									type: 'upload',
+									data: err,
+									result: error
+								});
+							}
+							res.send({
+								type: 'upload',
+								data: null,
+								result: 'success'
+							});
 						});
-					}
-					res.send({
-						type: 'upload',
-						data: null,
-						result: 'success'
 					});
 				});
 			});
+
 		});
 	});
 });
