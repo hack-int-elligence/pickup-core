@@ -329,6 +329,33 @@ router.post('/upload', function(req, res) {
 	});
 });
 
+router.post('/recent', function(req, res) {
+	req.body.username = req.body.username.toLowerCase();
+	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
+		if (err) {
+			res.status(500).send({
+				type: 'recent',
+				data: err,
+				result: 'mongo error'
+			});
+		} else {
+			if (req.body.authToken == entry.authToken) {
+				res.status(200).send({
+					type: 'recent',
+					data: entry.recent,
+					result: 'success'
+				});
+			} else {
+				res.status(401).send({
+					type: 'auth',
+					result: 'auth error',
+					data: null
+				});
+			}
+		}
+	});
+});
+
 router.post('/preview', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	req.body.filepath = req.body.filepath.replace(/ /g, '_');
