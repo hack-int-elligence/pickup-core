@@ -138,18 +138,6 @@ router.post('/auth', function(req, res) {
 });
 
 router.post('/search', function(req, res) {
-	request.post({
-		url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
-		formData: {
-			mac_address: entry['mac-address']
-		}
-	}, function(err, response, body) {
-		if (err) {
-			console.log(err);
-		} else {
-			console.log(body);
-		}
-	});
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
@@ -159,6 +147,18 @@ router.post('/search', function(req, res) {
 				result: 'mongo error'
 			});
 		} else {
+			request.post({
+				url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+				formData: {
+					mac_address: entry['mac-address']
+				}
+			}, function(err, response, body) {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log(body);
+				}
+			});
 			// check auth token
 			if (req.body.authToken == entry.authToken) {
 				// all okay
@@ -222,18 +222,6 @@ router.post('/search', function(req, res) {
 
 router.post('/pickup', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
-	request.post({
-		url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
-		formData: {
-			mac_address: entry['mac-address']
-		}
-	}, function(err, response, body) {
-		if (err) {
-			console.log(err);
-		} else {
-			console.log(body);
-		}
-	});
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
 			console.log(err);
@@ -243,6 +231,18 @@ router.post('/pickup', function(req, res) {
 				result: 'mongo error'
 			});
 		} else {
+			request.post({
+				url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+				formData: {
+					mac_address: entry['mac-address']
+				}
+			}, function(err, response, body) {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log(body);
+				}
+			});
 			if (req.body.authToken == entry.authToken) {
 				// all okay
 				var password = req.body.sshPassword;
@@ -424,18 +424,6 @@ router.post('/updateAccountPassword', function(req, res) {
 
 router.post('/browse', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
-	request.post({
-		url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
-		formData: {
-			mac_address: entry['mac-address']
-		}
-	}, function(err, response, body) {
-		if (err) {
-			console.log(err);
-		} else {
-			console.log(body);
-		}
-	});
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
 			res.status(500).send({
@@ -445,6 +433,18 @@ router.post('/browse', function(req, res) {
 			});
 		} else {
 			// check auth token
+			request.post({
+				url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+				formData: {
+					mac_address: entry['mac-address']
+				}
+			}, function(err, response, body) {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log(body);
+				}
+			});
 			if (req.body.authToken == entry.authToken) {
 				// all okay
 				var password = req.body.sshPassword;
