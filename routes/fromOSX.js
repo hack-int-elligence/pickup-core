@@ -90,7 +90,7 @@ router.post('/upload', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
-	var contentString = new Buffer(req.body.contents, 'base64').toString('ascii');
+	var contentString = new Buffer(req.body.contents, 'base64').toString('utf8');
 	console.log(contentString);
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
@@ -109,7 +109,7 @@ router.post('/upload', function(req, res) {
 			var tokens = blob_name.split('/');
 			var filename = tokens[tokens.length - 1];
 			console.log(filename);
-			fs.writeFile(filename, contentString, 'ascii', function(err) {
+			fs.writeFile(filename, contentString, 'utf8', function(err) {
 				if (err) console.log(err)
 				blobService.createBlockBlobFromLocalFile(container_name, filename, filename, function(err, result, response) {
 					// succesfully stored in azure storage
