@@ -513,80 +513,77 @@ router.post('/browse', function(req, res) {
 
 router.post('/onedrive', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
-	res.send({
-		data: req.body
-	})
-	// networkDb.findEntryByUsername(req.body.username, function(err, entry) {
-	// 	if (err) {
-	// 		console.log(err);
-	// 		res.status(500).send({
-	// 			type: 'onedrive',
-	// 			data: err,
-	// 			result: 'mongo error'
-	// 		});
-	// 	} else {
-	// 		if (req.body.authToken == entry.authToken) {
-	// 			// all okay
-	// 			var password = req.body.sshPassword;
-	// 			var host = entry.host;
-	// 			var username = entry.ssh_username;
-	// 			var filepath = req.body.filepath;
-	// 			var email = req.body.email;
-	// 			var connection = new sshClient();
-	// 			console.log('ssh-ing into ' + host + ' with username: ' + username + ', password: ' + password);
-	// 			connection.on('ready', function() {
-	// 				debug('Succesfully connected via SSH to host!');
-	// 				console.log('searching for filepath: ' + filepath);
-	// 				var uploadToOneDriveScript = 'filename=$(basename "' + filepath + '") && token=' + req.body.onedriveToken + ' && curl -X \'PUT\' -H "Content-Type: application/octet-stream" --data-binary \'@\'"' + filepath + '" \'https://api.onedrive.com/v1.0/drive/root:/pickup/\'"${filename}"\':/content?access_token=\'"${token}"\'\'';
-	// 				connection.exec(uploadToOneDriveScript, function(execErr, stream) {
-	// 					if (err) {
-	// 						console.log(err);
-	// 						res.status(500).send({
-	// 							type: 'onedrive',
-	// 							data: execErr,
-	// 							result: 'execution error'
-	// 						});
-	// 						return connection.end();
-	// 					} else {
-	// 						stream.on('data', function(data) {
-	// 							console.log(data);
-	// 						}).on('close', function() {
-	// 							console.log('closed stream');
-	// 							res.status(200).send({
-	// 								type: 'onedrive',
-	// 								result: 'success',
-	// 								data: null
-	// 							});
-	// 							return connection.end();
-	// 						})
-	// 					}
-	// 				});
-	// 			}).on('error', function(err) {
-	// 				res.status(500).send({
-	// 					type: 'onedrive',
-	// 					result: 'error',
-	// 					data: err
-	// 				});
-	// 			}).on('keyboard-interactive', function(name, instructions, instructionsLang, prompts, finish) {
-	// 				console.log('Serving SSH password in a handshake interchange...');
-	// 				finish([password]);
-	// 			}).connect({
-	// 				host: host,
-	// 				port: 22,
-	// 				username: username,
-	// 				readyTimeout: 99999,
-	// 				tryKeyboard: true
-	// 			});
-	// 		} else {
-	// 			// no auth token
-	// 			res.status(401).send({
-	// 				type: 'onedrive',
-	// 				result: 'auth error',
-	// 				data: null
-	// 			});
-	// 		}
-	// 	}
-	// });
+	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
+		if (err) {
+			console.log(err);
+			res.status(500).send({
+				type: 'onedrive',
+				data: err,
+				result: 'mongo error'
+			});
+		} else {
+			if (req.body.authToken == entry.authToken) {
+				// all okay
+				var password = req.body.sshPassword;
+				var host = entry.host;
+				var username = entry.ssh_username;
+				var filepath = req.body.filepath;
+				var email = req.body.email;
+				var connection = new sshClient();
+				console.log('ssh-ing into ' + host + ' with username: ' + username + ', password: ' + password);
+				connection.on('ready', function() {
+					debug('Succesfully connected via SSH to host!');
+					console.log('searching for filepath: ' + filepath);
+					var uploadToOneDriveScript = 'filename=$(basename "' + filepath + '") && token=' + req.body.onedriveToken + ' && curl -X \'PUT\' -H "Content-Type: application/octet-stream" --data-binary \'@\'"' + filepath + '" \'https://api.onedrive.com/v1.0/drive/root:/pickup/\'"${filename}"\':/content?access_token=\'"${token}"\'\'';
+					connection.exec(uploadToOneDriveScript, function(execErr, stream) {
+						if (err) {
+							console.log(err);
+							res.status(500).send({
+								type: 'onedrive',
+								data: execErr,
+								result: 'execution error'
+							});
+							return connection.end();
+						} else {
+							stream.on('data', function(data) {
+								console.log(data);
+							}).on('close', function() {
+								console.log('closed stream');
+								res.status(200).send({
+									type: 'onedrive',
+									result: 'success',
+									data: null
+								});
+								return connection.end();
+							})
+						}
+					});
+				}).on('error', function(err) {
+					res.status(500).send({
+						type: 'onedrive',
+						result: 'error',
+						data: err
+					});
+				}).on('keyboard-interactive', function(name, instructions, instructionsLang, prompts, finish) {
+					console.log('Serving SSH password in a handshake interchange...');
+					finish([password]);
+				}).connect({
+					host: host,
+					port: 22,
+					username: username,
+					readyTimeout: 99999,
+					tryKeyboard: true
+				});
+			} else {
+				// no auth token
+				res.status(401).send({
+					type: 'onedrive',
+					result: 'auth error',
+					data: null
+				});
+			}
+		}
+	});
 });
 
 /*
