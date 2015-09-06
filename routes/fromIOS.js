@@ -315,7 +315,7 @@ router.post('/email', function(req, res) {
 		if (err) {
 			console.log(err);
 			res.status(500).send({
-				type: 'pickup',
+				type: 'email',
 				data: err,
 				result: 'mongo error'
 			});
@@ -349,7 +349,7 @@ router.post('/email', function(req, res) {
 						if (err) {
 							console.log(err);
 							res.status(500).send({
-								type: 'pickup',
+								type: 'email',
 								data: execErr,
 								result: 'execution error'
 							});
@@ -358,7 +358,7 @@ router.post('/email', function(req, res) {
 							stream.on('data', function(data) {
 								// console.log(data.toString().trim().split(/\n/));
 								res.status(200).send({
-									type: 'pickup',
+									type: 'email',
 									result: 'success',
 									data: data.toString()
 								});
@@ -371,7 +371,7 @@ router.post('/email', function(req, res) {
 					});
 				}).on('error', function(err) {
 					res.status(500).send({
-						type: 'pickup',
+						type: 'email',
 						result: 'error',
 						data: err
 					});
@@ -388,7 +388,7 @@ router.post('/email', function(req, res) {
 			} else {
 				// no auth token
 				res.status(401).send({
-					type: 'pickup',
+					type: 'email',
 					result: 'auth error',
 					data: null
 				});
