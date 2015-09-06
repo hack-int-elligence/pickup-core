@@ -116,7 +116,7 @@ router.post('/upload', function(req, res) {
 				Bucket: 'pickupfilestorage',
 				Key: bucketKey,
 				Body: contentString,
-				ContentType: mime.lookup(filename)
+				ContentType: mime.lookup(blob_name)
 			}, function(err, result) {
 				if (err) {
 					console.log(err);
