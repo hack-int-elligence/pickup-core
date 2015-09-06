@@ -255,7 +255,8 @@ router.post('/pickup', function(req, res) {
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
 					console.log('searching for filepath: ' + filepath);
-					var uploadScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && echo \'username=\'"${username}"\'&filepath=\'"${filepath}"\'&contents=\'"${encoded_file}"\'\' | curl -X \'POST\' -d @- \'http://pickup.azurewebsites.net/upload\'';
+					//var uploadScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && echo \'username=\'"${username}"\'&filepath=\'"${filepath}"\'&contents=\'"${encoded_file}"\'\' | curl -X \'POST\' -d @- \'http://pickup.azurewebsites.net/upload\'';
+					var uploadScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -X \'POST\' -d \'username=\'$username\'&filepath=\'$filepath\'&contents=\'"$encoded_file"\'\' \'http://pickup.azurewebsites.net/upload\'';
 					connection.exec(uploadScript, function(execErr, stream) {
 						if (err) {
 							console.log(err);

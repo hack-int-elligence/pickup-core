@@ -12,12 +12,10 @@ var azure = require('azure-storage');
 var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
-var mime = require('mime');
 var AWS = require('aws-sdk');
 AWS.config.update({
 	region: 'us-east-1'
 });
-
 
 var router = express.Router();
 
@@ -95,11 +93,12 @@ router.post('/update', function(req, res) {
 });
 
 router.post('/upload', function(req, res) {
-	console.log('Received data from OS X for /upload');
+	console.log('Recieved data from OS X for /upload');
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
 	var contentString = new Buffer(req.body.contents, 'base64');
+	console.log(contentString);
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
 		blobService.setContainerAcl(container_name, null, {
@@ -109,13 +108,14 @@ router.post('/upload', function(req, res) {
 			AWS.config.update({
 				region: 'us-east-1'
 			});
+			console.log(AWS.config);
 			var bucketKey = req.body.username + ':' + blob_name;
 			// username format is username:filepath
 			console.log(bucketKey);
 			s3service.putObject({
 				Bucket: 'pickupfilestorage',
 				Key: bucketKey,
-				Body: contentString
+				Body: contentString,
 			}, function(err, result) {
 				if (err) {
 					console.log(err);
