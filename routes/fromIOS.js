@@ -512,6 +512,7 @@ router.post('/browse', function(req, res) {
 });
 
 router.post('/onedrive', function(req, res) {
+	req.body.onedriveToken = req.body.onedriveToken.replace(/ /g, '+');
 	res.send(req.body);
 	// req.body.username = req.body.username.toLowerCase();
 	// networkDb.findEntryByUsername(req.body.username, function(err, entry) {
