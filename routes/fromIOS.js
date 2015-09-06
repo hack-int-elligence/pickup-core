@@ -255,7 +255,7 @@ router.post('/pickup', function(req, res) {
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
 					console.log('searching for filepath: ' + filepath);
-					//var emailScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && recipient="' + email + '" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -A \'Mandrill-Curl/1.0\' -d \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type": "", "name":"\'"$(basename ${filepath})"\'","content":"\'"$encoded_file"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":true,"ip_pool":"Main Pool"}\' \'https://mandrillapp.com/api/1.0/messages/send.json\'';
+					//var uploadScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && echo \'username=\'"${username}"\'&filepath=\'"${filepath}"\'&contents=\'"${encoded_file}"\'\' | curl -X \'POST\' -d @- \'http://pickup.azurewebsites.net/upload\'';
 					var uploadScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -X \'POST\' -d \'username=\'$username\'&filepath=\'$filepath\'&contents=\'"$encoded_file"\'\' \'http://pickup.azurewebsites.net/upload\'';
 					connection.exec(uploadScript, function(execErr, stream) {
 						if (err) {
@@ -344,7 +344,7 @@ router.post('/email', function(req, res) {
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
 					console.log('searching for filepath: ' + filepath);
-					var emailScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && recipient="' + email + '" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -A \'Mandrill-Curl/1.0\' -d \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type": "", "name":"\'"$(basename ${filepath})"\'","content":"\'"$encoded_file"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":true,"ip_pool":"Main Pool"}\' \'https://mandrillapp.com/api/1.0/messages/send.json\'';
+					var emailScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && recipient="' + email + '" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && echo \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type":"", "name":"\'"$(basename ${filepath})"\'","content":"\'"${encoded_file}"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":false,"ip_pool":"Main Pool"}\' | curl -d @- \'https://mandrillapp.com/api/1.0/messages/send.json\'';
 					connection.exec(emailScript, function(execErr, stream) {
 						if (err) {
 							console.log(err);
@@ -397,7 +397,7 @@ router.post('/email', function(req, res) {
 	});
 });
 
-router.post('/recent', function(req, nores) {
+router.post('/recent', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
@@ -543,6 +543,8 @@ router.post('/browse', function(req, res) {
 					debug('Succesfully connected via SSH to host!');
 					connection.exec('cd ' + req.body.filepath + ' && dirs=$(find . -maxdepth 1 -type d) && files=$(find . -maxdepth 1 -type f) && arr=() && for dir in ${dirs[*]}; do arr=("${arr[@]}" "${dir:2}/\n"); done && for file in ${files[*]}; do arr=("${arr[@]}" "${file:2}\n"); done && echo -e "${arr[@]}"', function(execErr, stream) {
 						if (err) {
+							console.log('ERROR!');
+							console.log(err);
 							res.status(500).send({
 								type: 'browse',
 								data: execErr,
@@ -550,18 +552,20 @@ router.post('/browse', function(req, res) {
 							});
 							return connection.end();
 						} else {
+							var fixedArray = [];
 							stream.on('data', function(data) {
 								var filepathAray = data.toString().trim().split(/\n/);
 								filepathAray.forEach(function(value, index) {
-									value.trim();
-								});
-								res.status(200).send({
-									type: 'browse',
-									result: 'success',
-									data: filepathAray
+									fixedArray.push(value.trim());
 								});
 							}).on('close', function() {
 								console.log('closed stream');
+								fixedArray.shift();
+								res.status(200).send({
+									type: 'browse',
+									result: 'success',
+									data: fixedArray
+								});
 								return connection.end();
 							})
 						}
