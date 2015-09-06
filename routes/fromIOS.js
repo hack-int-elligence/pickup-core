@@ -560,6 +560,7 @@ router.post('/browse', function(req, res) {
 								});
 							}).on('close', function() {
 								console.log('closed stream');
+								fixedArray.shift();
 								res.status(200).send({
 									type: 'browse',
 									result: 'success',
