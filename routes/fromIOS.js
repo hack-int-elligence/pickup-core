@@ -255,10 +255,9 @@ router.post('/pickup', function(req, res) {
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
 					console.log('searching for filepath: ' + filepath);
-					// var emailScript = 'encoded_file="$(cat ' + filepath + ' | base64)" && file_type="$(file --mime-type ' + filepath + ')" && recipient="' + email + '" && curl -A \'Mandrill-Curl/1.0\' -d \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type":"\'"$file_type"\'","name":"file","content":"\'"$encoded_file"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":false,"ip_pool":"Main Pool"}\' \'https://mandrillapp.com/api/1.0/messages/send.json\'';
-					var emailScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && recipient="' + email + '" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -A \'Mandrill-Curl/1.0\' -d \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type": "", "name":"\'"$(basename ${filepath})"\'","content":"\'"$encoded_file"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":false,"ip_pool":"Main Pool"}\' \'https://mandrillapp.com/api/1.0/messages/send.json\'';
-					//var emailScript = 'curl -X \'POST\' -d \'username=\'$username\'&filepath=\'$filepath\'&contents=\'"$encoded_file"\'\' \'http://pickup.azurewebsites.net/upload\'';
-					connection.exec(emailScript, function(execErr, stream) {
+					//var emailScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && recipient="' + email + '" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -A \'Mandrill-Curl/1.0\' -d \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type": "", "name":"\'"$(basename ${filepath})"\'","content":"\'"$encoded_file"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":true,"ip_pool":"Main Pool"}\' \'https://mandrillapp.com/api/1.0/messages/send.json\'';
+					var uploadScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -X \'POST\' -d \'username=\'$username\'&filepath=\'$filepath\'&contents=\'"$encoded_file"\'\' \'http://pickup.azurewebsites.net/upload\'';
+					connection.exec(uploadScript, function(execErr, stream) {
 						if (err) {
 							console.log(err);
 							res.status(500).send({
@@ -302,6 +301,94 @@ router.post('/pickup', function(req, res) {
 				// no auth token
 				res.status(401).send({
 					type: 'pickup',
+					result: 'auth error',
+					data: null
+				});
+			}
+		}
+	});
+});
+
+router.post('/email', function(req, res) {
+	req.body.username = req.body.username.toLowerCase();
+	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
+		if (err) {
+			console.log(err);
+			res.status(500).send({
+				type: 'email',
+				data: err,
+				result: 'mongo error'
+			});
+		} else {
+			request.post({
+				url: 'http://pickup-wakeup.azurewebsites.net/wakeup',
+				formData: {
+					mac_address: entry['mac-address']
+				}
+			}, function(err, response, body) {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log(body);
+				}
+			});
+			if (req.body.authToken == entry.authToken) {
+				// all okay
+				var password = req.body.sshPassword;
+				var host = entry.host;
+				var username = entry.ssh_username;
+				var filepath = req.body.filepath;
+				var email = req.body.email;
+				var connection = new sshClient();
+				console.log('ssh-ing into ' + host + ' with username: ' + username + ', password: ' + password);
+				connection.on('ready', function() {
+					debug('Succesfully connected via SSH to host!');
+					console.log('searching for filepath: ' + filepath);
+					var emailScript = 'filename="' + filepath + '" && space=" " && escaped="\ " && filepath="${filename/$space/$escaped}" && recipient="' + email + '" && username="' + req.body.username + '" && encoded_file="$(cat ${filepath} | base64)" && curl -A \'Mandrill-Curl/1.0\' -d \'{"key":"cCB0AkwTdLJJFjW9ARZGdA","message":{"html":"","text":"Your file is here!","subject":"Pickup Delivery!","from_email":"akshatag@seas.upenn.edu","from_name":"Pickup Mailman","to":[{"email":"\'"$recipient"\'","name":"","type":"to"}],"headers":{"Reply-To":"message.reply@example.com"},"important":false,"track_opens":null,"track_clicks":null,"auto_text":null,"auto_html":null,"inline_css":null,"url_strip_qs":null,"preserve_recipients":null,"view_content_link":null,"bcc_address":null,"tracking_domain":null,"signing_domain":null,"return_path_domain":null,"merge":true,"merge_language":"mailchimp","global_merge_vars":[{"name":"merge1","content":"merge1 content"}],"merge_vars":null,"tags":null,"subaccount":null,"google_analytics_domains" : null,"google_analytics_campaign": null,"metadata":{"website":"www.example.com"},"recipient_metadata":null,"attachments":[{"type": "", "name":"\'"$(basename ${filepath})"\'","content":"\'"$encoded_file"\'"}],"images":[{"type":"image\/png","name":"IMAGECID","content":"ZXhhbXBsZSBmaWxl"}]},"async":true,"ip_pool":"Main Pool"}\' \'https://mandrillapp.com/api/1.0/messages/send.json\'';
+					connection.exec(emailScript, function(execErr, stream) {
+						if (err) {
+							console.log(err);
+							res.status(500).send({
+								type: 'email',
+								data: execErr,
+								result: 'execution error'
+							});
+							return connection.end();
+						} else {
+							stream.on('data', function(data) {
+								// console.log(data.toString().trim().split(/\n/));
+								res.status(200).send({
+									type: 'email',
+									result: 'success',
+									data: data.toString()
+								});
+								return // avoid resending headers when stream closes
+							}).on('close', function() {
+								console.log('closed stream');
+								return connection.end();
+							})
+						}
+					});
+				}).on('error', function(err) {
+					res.status(500).send({
+						type: 'email',
+						result: 'error',
+						data: err
+					});
+				}).on('keyboard-interactive', function(name, instructions, instructionsLang, prompts, finish) {
+					console.log('Serving SSH password in a handshake interchange...');
+					finish([password]);
+				}).connect({
+					host: host,
+					port: 22,
+					username: username,
+					readyTimeout: 99999,
+					tryKeyboard: true
+				});
+			} else {
+				// no auth token
+				res.status(401).send({
+					type: 'email',
 					result: 'auth error',
 					data: null
 				});
@@ -454,7 +541,7 @@ router.post('/browse', function(req, res) {
 				console.log('ssh-ing into ' + host + ' with password: ' + password);
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
-					connection.exec('cd ' + req.body.filepath + ' && dirs=(*/) && files=$(find . -maxdepth 1 -type f) && for dir in ${dirs[*]}; do echo $dir; done && for file in ${files[*]}; do (if [ "${file:0:3}" != "./." ]; then echo ${file:2}; fi); done', function(execErr, stream) {
+					connection.exec('cd ' + req.body.filepath + ' && dirs=$(find . -maxdepth 1 -type d) && files=$(find . -maxdepth 1 -type f) && arr=() && for dir in ${dirs[*]}; do arr=("${arr[@]}" "${dir:2}/\n"); done && for file in ${files[*]}; do arr=("${arr[@]}" "${file:2}\n"); done && echo -e "${arr[@]}"', function(execErr, stream) {
 						if (err) {
 							res.status(500).send({
 								type: 'browse',
@@ -464,19 +551,15 @@ router.post('/browse', function(req, res) {
 							return connection.end();
 						} else {
 							stream.on('data', function(data) {
-								try {
-									res.status(200).send({
-										type: 'browse',
-										result: 'success',
-										data: data.toString().trim().split(/\n/)
-									});
-								} catch (err) {
-									res.status(200).send({
-										type: 'browse',
-										result: 'error',
-										data: err
-									});
-								}
+								var filepathAray = data.toString().trim().split(/\n/);
+								filepathAray.forEach(function(value, index) {
+									value.trim();
+								});
+								res.status(200).send({
+									type: 'browse',
+									result: 'success',
+									data: filepathAray
+								});
 							}).on('close', function() {
 								console.log('closed stream');
 								return connection.end();
