@@ -551,19 +551,11 @@ router.post('/browse', function(req, res) {
 							return connection.end();
 						} else {
 							stream.on('data', function(data) {
-								try {
-									res.status(200).send({
-										type: 'browse',
-										result: 'success',
-										data: data.toString().trim().split(/\n/)
-									});
-								} catch (err) {
-									res.status(200).send({
-										type: 'browse',
-										result: 'error',
-										data: err
-									});
-								}
+								res.status(200).send({
+									type: 'browse',
+									result: 'success',
+									data: data.toString().trim().split(/\n/)
+								});
 							}).on('close', function() {
 								console.log('closed stream');
 								return connection.end();
