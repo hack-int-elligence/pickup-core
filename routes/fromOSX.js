@@ -12,10 +12,12 @@ var azure = require('azure-storage');
 var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
+var mime = require('mime');
 var AWS = require('aws-sdk');
 AWS.config.update({
 	region: 'us-east-1'
 });
+
 
 var router = express.Router();
 
@@ -98,7 +100,6 @@ router.post('/upload', function(req, res) {
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
 	var contentString = new Buffer(req.body.contents, 'base64');
-	console.log(contentString.toString('ascii'));
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
 		blobService.setContainerAcl(container_name, null, {
@@ -108,39 +109,61 @@ router.post('/upload', function(req, res) {
 			AWS.config.update({
 				region: 'us-east-1'
 			});
-			console.log(AWS.config);
 			var bucketKey = req.body.username + ':' + blob_name;
 			// username format is username:filepath
 			console.log(bucketKey);
-			s3service.putObject({
-				Bucket: 'pickupfilestorage',
-				Key: bucketKey,
-				Body: contentString,
-			}, function(err, result) {
+			var tokens = blob_name.split('/');
+			var filename = tokens[tokens.length - 1];
+			fs.writeFile(filename, contentString, function(err) {
 				if (err) {
-					console.log(err);
-					res.status(500).send({
+					res.status(200).send({
 						type: 'upload',
 						data: err,
-						result: 'amazon s3 error'
+						result: 'error'
 					});
 				} else {
-					var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
-					console.log(urlString);
-					blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
-						console.log(err, result, response);
-						networkDb.updateEntryWithRecentFile(req.body.username, {
-							filepath: blob_name,
-							container_name: container_name,
-							URL: urlString,
-							contentType: 'text/plain'
-						}, function(err, result) {
+					fs.readFile(filename, function(err, data) {
+						if (err) {
 							res.status(200).send({
 								type: 'upload',
 								data: err,
-								result: 'success'
+								result: 'error'
 							});
-						});
+						} else {
+							var Body = data;
+							s3service.putObject({
+								Bucket: 'pickupfilestorage',
+								Key: bucketKey,
+								Body: Body,
+								ContentType: mime.lookup(filename)
+							}, function(err, result) {
+								if (err) {
+									console.log(err);
+									res.status(500).send({
+										type: 'upload',
+										data: err,
+										result: 'amazon s3 error'
+									});
+								} else {
+									var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
+									console.log(urlString);
+									blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
+										console.log(err, result, response);
+										networkDb.updateEntryWithRecentFile(req.body.username, {
+											filepath: blob_name,
+											container_name: container_name,
+											URL: urlString
+										}, function(err, result) {
+											res.status(200).send({
+												type: 'upload',
+												data: err,
+												result: 'success'
+											});
+										});
+									});
+								}
+							});
+						}
 					});
 				}
 			});
