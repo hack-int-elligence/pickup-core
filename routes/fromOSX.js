@@ -115,7 +115,7 @@ router.post('/upload', function(req, res) {
 			s3service.putObject({
 				Bucket: 'pickupfilestorage',
 				Key: bucketKey,
-				Body: contentString,
+				Body: req.body.contents,
 				ContentType: mime.lookup(blob_name)
 			}, function(err, result) {
 				if (err) {
