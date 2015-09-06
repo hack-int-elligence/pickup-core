@@ -541,7 +541,7 @@ router.post('/browse', function(req, res) {
 				console.log('ssh-ing into ' + host + ' with password: ' + password);
 				connection.on('ready', function() {
 					debug('Succesfully connected via SSH to host!');
-					connection.exec('cd ' + req.body.filepath + ' && dirs=$(find . -maxdepth 1 -type d) && files=$(find . -maxdepth 1 -type f) && arr=() && for dir in ${dirs[*]}; do arr=("${arr[@]}" "${dir:2}/\n"); done && for file in ${files[*]}; do arr=("${arr[@]}" "${file:2}\n"); done && echo -e "${arr[@]}"', function(execErr, stream) {
+					connection.exec('cd ' + req.body.filepath + ' && dirs=$(find . -maxdepth 1 -type d) && del="." && dirs=( "${dirs[@]/$del}" ) && files=$(find . -maxdepth 1 -type f) && arr=() && sub="./" && rep1="==" && rep2="=" && dirs="${dirs[*]//$sub/$rep1}" && files="${files[*]//$sub/$rep2}" && arr=( "${dirs[*]}" "\n" "${files[*]}" ) && echo "${arr[*]}"', function(execErr, stream) {
 						if (err) {
 							console.log('ERROR!');
 							console.log(err);
