@@ -397,7 +397,7 @@ router.post('/email', function(req, res) {
 	});
 });
 
-router.post('/recent', function(req, nores) {
+router.post('/recent', function(req, res) {
 	req.body.username = req.body.username.toLowerCase();
 	networkDb.findEntryByUsername(req.body.username, function(err, entry) {
 		if (err) {
