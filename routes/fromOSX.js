@@ -112,58 +112,37 @@ router.post('/upload', function(req, res) {
 			var bucketKey = req.body.username + ':' + blob_name;
 			// username format is username:filepath
 			console.log(bucketKey);
-			var tokens = blob_name.split('/');
-			var filename = tokens[tokens.length - 1];
-			fs.writeFile(filename, contentString, function(err) {
+
+			var Body = data;
+			s3service.putObject({
+				Bucket: 'pickupfilestorage',
+				Key: bucketKey,
+				Body: Body,
+				ContentType: mime.lookup(filename)
+			}, function(err, result) {
 				if (err) {
-					res.status(200).send({
+					console.log(err);
+					res.status(500).send({
 						type: 'upload',
 						data: err,
-						result: 'error'
+						result: 'amazon s3 error'
 					});
 				} else {
-					fs.readFile(filename, function(err, data) {
-						if (err) {
+					var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
+					console.log(urlString);
+					blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
+						console.log(err, result, response);
+						networkDb.updateEntryWithRecentFile(req.body.username, {
+							filepath: blob_name,
+							container_name: container_name,
+							URL: urlString
+						}, function(err, result) {
 							res.status(200).send({
 								type: 'upload',
 								data: err,
-								result: 'error'
+								result: 'success'
 							});
-						} else {
-							var Body = data;
-							s3service.putObject({
-								Bucket: 'pickupfilestorage',
-								Key: bucketKey,
-								Body: Body,
-								ContentType: mime.lookup(filename)
-							}, function(err, result) {
-								if (err) {
-									console.log(err);
-									res.status(500).send({
-										type: 'upload',
-										data: err,
-										result: 'amazon s3 error'
-									});
-								} else {
-									var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
-									console.log(urlString);
-									blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
-										console.log(err, result, response);
-										networkDb.updateEntryWithRecentFile(req.body.username, {
-											filepath: blob_name,
-											container_name: container_name,
-											URL: urlString
-										}, function(err, result) {
-											res.status(200).send({
-												type: 'upload',
-												data: err,
-												result: 'success'
-											});
-										});
-									});
-								}
-							});
-						}
+						});
 					});
 				}
 			});
