@@ -552,13 +552,14 @@ router.post('/browse', function(req, res) {
 						} else {
 							stream.on('data', function(data) {
 								var filepathAray = data.toString().trim().split(/\n/);
+								var fixedArray = [];
 								filepathAray.forEach(function(value, index) {
-									value.trim();
+									fixedArray.push(value.trim());
 								});
 								res.status(200).send({
 									type: 'browse',
 									result: 'success',
-									data: filepathAray
+									data: fixedArray
 								});
 							}).on('close', function() {
 								console.log('closed stream');
