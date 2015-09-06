@@ -551,10 +551,14 @@ router.post('/browse', function(req, res) {
 							return connection.end();
 						} else {
 							stream.on('data', function(data) {
+								var filepathAray = data.toString().trim().split(/\n/);
+								filepathAray.forEach(function(value, index) {
+									value.trim();
+								});
 								res.status(200).send({
 									type: 'browse',
 									result: 'success',
-									data: data.toString().trim().split(/\n/)
+									data: filepathAray
 								});
 							}).on('close', function() {
 								console.log('closed stream');
