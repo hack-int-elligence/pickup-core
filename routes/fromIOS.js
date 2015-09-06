@@ -543,6 +543,8 @@ router.post('/browse', function(req, res) {
 					debug('Succesfully connected via SSH to host!');
 					connection.exec('cd ' + req.body.filepath + ' && dirs=$(find . -maxdepth 1 -type d) && files=$(find . -maxdepth 1 -type f) && arr=() && for dir in ${dirs[*]}; do arr=("${arr[@]}" "${dir:2}/\n"); done && for file in ${files[*]}; do arr=("${arr[@]}" "${file:2}\n"); done && echo -e "${arr[@]}"', function(execErr, stream) {
 						if (err) {
+							console.log('ERROR!');
+							console.log(err);
 							res.status(500).send({
 								type: 'browse',
 								data: execErr,
@@ -550,19 +552,19 @@ router.post('/browse', function(req, res) {
 							});
 							return connection.end();
 						} else {
+							var fixedArray = [];
 							stream.on('data', function(data) {
 								var filepathAray = data.toString().trim().split(/\n/);
-								var fixedArray = [];
 								filepathAray.forEach(function(value, index) {
 									fixedArray.push(value.trim());
 								});
+							}).on('close', function() {
+								console.log('closed stream');
 								res.status(200).send({
 									type: 'browse',
 									result: 'success',
 									data: fixedArray
 								});
-							}).on('close', function() {
-								console.log('closed stream');
 								return connection.end();
 							})
 						}
