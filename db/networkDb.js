@@ -123,6 +123,8 @@ module.exports = {
             debug('added new filepath to recent list');
             callback(err, result);
           });
+        } else {
+          callback(err, null);
         }
       }
     });
