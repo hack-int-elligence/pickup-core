@@ -93,12 +93,12 @@ router.post('/update', function(req, res) {
 });
 
 router.post('/upload', function(req, res) {
-	console.log('Recieved data from OS X for /upload');
+	console.log('Received data from OS X for /upload');
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
 	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
 	var contentString = new Buffer(req.body.contents, 'base64');
-	console.log(contentString);
+	console.log(contentString.toString('ascii'));
 	var blobService = azure.createBlobService();
 	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
 		blobService.setContainerAcl(container_name, null, {
@@ -132,7 +132,8 @@ router.post('/upload', function(req, res) {
 						networkDb.updateEntryWithRecentFile(req.body.username, {
 							filepath: blob_name,
 							container_name: container_name,
-							URL: urlString
+							URL: urlString,
+							contentType: 'text/plain'
 						}, function(err, result) {
 							res.status(200).send({
 								type: 'upload',
