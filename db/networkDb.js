@@ -50,7 +50,7 @@ module.exports = {
     });
   },
 
-  isAzureStorageReady: function(username, filepath, callback) {
+  isFilePreviewReady: function(username, filepath, callback) {
     mongo.networkData.count({
       username: username,
       recent: {
