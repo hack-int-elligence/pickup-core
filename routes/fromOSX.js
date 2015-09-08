@@ -4,12 +4,8 @@ var sshClient = require('ssh2').Client;
 var exec = require('child_process').exec;
 var debug = require('debug')('osx');
 var networkDb = require('../db/networkDb');
-process.env.AZURE_STORAGE_ACCESS_KEY = process.env.CUSTOMCONNSTR_AZURE_STORAGE_ACCESS_KEY;
-process.env.AZURE_STORAGE_ACCOUNT = process.env.CUSTOMCONNSTR_AZURE_STORAGE_ACCOUNT;
 process.env.AWS_ACCESS_KEY_ID = process.env.CUSTOMCONNSTR_AWS_ACCESS_KEY_ID;
 process.env.AWS_SECRET_ACCESS_KEY = process.env.CUSTOMCONNSTR_AWS_SECRET_ACCESS_KEY;
-var azure = require('azure-storage');
-var STORAGE_URL = 'https://pickupstorage.blob.core.windows.net/';
 var request = require('request');
 var fs = require('fs');
 var AWS = require('aws-sdk');
@@ -96,54 +92,45 @@ router.post('/upload', function(req, res) {
 	console.log('Recieved data from OS X for /upload');
 	req.body.username = req.body.username.toLowerCase();
 	var container_name = req.body.username;
-	var blob_name = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
+	var filepath = req.body.filepath.replace(/ /g, '_'); // replace spaces with _
 	var contentString = new Buffer(req.body.contents, 'base64');
 	console.log(contentString);
-	var blobService = azure.createBlobService();
-	blobService.createContainerIfNotExists(container_name, function(err, result, response) {
-		blobService.setContainerAcl(container_name, null, {
-			publicAccessLevel: 'container'
-		}, function(e, r, re) {
-			var s3service = new AWS.S3();
-			AWS.config.update({
-				region: 'us-east-1'
+
+	var s3service = new AWS.S3();
+	AWS.config.update({
+		region: 'us-east-1'
+	});
+	console.log(AWS.config);
+	var bucketKey = req.body.username + ':' + filepath;
+	// username format is username:filepath
+	console.log(bucketKey);
+	s3service.putObject({
+		Bucket: 'pickupfilestorage',
+		Key: bucketKey,
+		Body: contentString,
+	}, function(err, result) {
+		if (err) {
+			console.log(err);
+			res.status(500).send({
+				type: 'upload',
+				data: err,
+				result: 'amazon s3 error'
 			});
-			console.log(AWS.config);
-			var bucketKey = req.body.username + ':' + blob_name;
-			// username format is username:filepath
-			console.log(bucketKey);
-			s3service.putObject({
-				Bucket: 'pickupfilestorage',
-				Key: bucketKey,
-				Body: contentString,
+		} else {
+			var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
+			console.log(urlString);
+			networkDb.updateEntryWithRecentFile(req.body.username, {
+				filepath: filepath,
+				container_name: container_name,
+				URL: urlString
 			}, function(err, result) {
-				if (err) {
-					console.log(err);
-					res.status(500).send({
-						type: 'upload',
-						data: err,
-						result: 'amazon s3 error'
-					});
-				} else {
-					var urlString = 'http://pickupfilestorage.s3.amazonaws.com/' + bucketKey;
-					console.log(urlString);
-					blobService.createBlockBlobFromText(container_name, blob_name, urlString, function(err, result, response) {
-						console.log(err, result, response);
-						networkDb.updateEntryWithRecentFile(req.body.username, {
-							filepath: blob_name,
-							container_name: container_name,
-							URL: urlString
-						}, function(err, result) {
-							res.status(200).send({
-								type: 'upload',
-								data: err,
-								result: 'success'
-							});
-						});
-					});
-				}
+				res.status(200).send({
+					type: 'upload',
+					data: err,
+					result: 'success'
+				});
 			});
-		});
+		}
 	});
 });
 
